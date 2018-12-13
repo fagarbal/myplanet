@@ -22,15 +22,8 @@
     "url": "git+https://github.com/fagarbal/myplanet.git"
   },
   "keywords": [
-    "Phaser",
-    "Phaser3",
-    "Game",
-    "Games",
-    "Gaming",
-    "Boilerplate",
-    "Typescript"
   ],
-  "author": "Leonardo Daniel Dias",
+  "author": "Fabio Garcia Balbuena",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/fagarbal/myplanet/issues"
