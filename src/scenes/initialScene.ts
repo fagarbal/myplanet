@@ -10,72 +10,112 @@ function moveObjectAroundObject(
     objectA.y = objectB.y + Math.sin(speed) * rad;
 }
 
+abstract class PlanetOptions {
+    radius: number;
+    color?: number;
+    x?: number;
+    y?: number;
+}
+
+class Planet {
+    sprite: Phaser.GameObjects.Sprite;
+    speed = 0;
+
+    constructor(
+        scene: Phaser.Scene,
+        id: string,
+        options: PlanetOptions) {
+        const circle = new Phaser.Geom.Circle(options.radius, options.radius, options.radius);
+
+        const graphics = scene.make.graphics({ x: options.x, y: options.y, add: false });
+        graphics.fillStyle(options.color);
+        graphics.fillCircleShape(circle);
+        graphics.generateTexture(id, options.radius * 2, options.radius * 2);
+
+        this.sprite = scene.add.sprite(options.x, options.y, id);
+    }
+
+    showCircle() {
+
+    }
+
+}
+
 export class initialScene extends Phaser.Scene {
-    private moon: Phaser.GameObjects.Sprite;
-    private sun: Phaser.GameObjects.Sprite;
-    private earth: Phaser.GameObjects.Sprite;
-    private player: Phaser.GameObjects.Sprite;
-    private satellite: Phaser.GameObjects.Sprite;
-    private graphics: Phaser.GameObjects.Graphics;
-    private rotationSpeedMoon = Math.PI / 180 * 0;
-    private rotationSpeedEarth = Math.PI / 180 * 0;
-    private cursors: CursorKeys;
-    private camera: Phaser.Cameras.Sprite3D.OrthographicCamera;
-    private position: Phaser.Math.Vector3;
-    private playerSpeedX: number = 0;
-    private playerSpeedY: number = 0;
-    private jumping = false;
-    private descending = false;
+    sun: Planet;
+    earth: Planet;
+    moon: Planet;
+
+    player: Phaser.GameObjects.Sprite;
+
+    cursors: CursorKeys;
+
+    playerSpeedX = 0;
+    playerSpeedY = 0;
+
+    jumping = false;
+    descending = false;
 
     constructor() {
         super({
-          key: 'initialScene'
+            key: 'initialScene'
         });
     }
 
     preload(): void {
-        this.load.image('sun', './src/assets/sun.png');
-        this.load.image('earth', './src/assets/earth.png');
-        this.load.image('moon', './src/assets/moon.png');
-        this.load.image('player', './src/assets/player.png');
-        this.load.image('satellite', './src/assets/satellite.png');
+        this.load.spritesheet('player', './src/assets/player.png', { frameWidth: 70, frameHeight: 70 });
     }
 
     create(): void {
-        this.sun = this.add.sprite(window.innerWidth/2, window.innerHeight/2, 'sun').setDisplaySize(20000, 20000);
-        this.earth = this.add.sprite(400, 300, 'earth').setDisplaySize(3000, 3000);
-        this.moon = this.add.sprite(400, 300, 'moon').setDisplaySize(1000, 1000);
-        this.player = this.add.sprite(400, 300, 'player').setDisplaySize(10, 10);
-        this.satellite = this.add.sprite(400, 300, 'satellite').setDisplaySize(36, 27);
+        this.sun = new Planet(this, 'sun', {
+            radius: 1090,
+            color: 0xF9D71C,
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+        });
 
-        this.player.rotation = 1.5;
+        this.earth = new Planet(this, 'earth', {
+            radius: 200,
+            color: 0x0077BE
+        });
 
-        this.cameras.main.rotation = -1.5;
+        this.moon = new Planet(this, 'moon', {
+            radius: 60,
+            color: 0xFFFFFF
+        });
 
-        this.graphics = this.add.graphics();
+        var config = {
+            key: 'walk',
+            frames: this.anims.generateFrameNumbers('player', { start: 0, end: 7 }),
+            frameRate: 10,
+            repeat: -1
+        };
+    
+        this.anims.create(config);
 
-        this.graphics.fillStyle(0xFFFFFF);
+        var config2 = {
+            key: 'jump',
+            frames: this.anims.generateFrameNumbers('player', { start: 8, end: 15 }),
+            frameRate: 10,
+            repeat: -1
+        };
+    
+        this.anims.create(config2);
+        
+        this.player = this.add.sprite(0, 0, 'player');
+
+        this.player.setAngle(90);
+        this.cameras.main.setAngle(270);
+    
+        this.player.anims.load('walk');
+        this.player.anims.load('jump');
+
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.cameras.main.setZoom(5);
 
-        this.cameras.main.startFollow(this.player)
-
-        this.cameras.main.y += 100;
-
-        moveObjectAroundObject(this.player, this.earth, this.playerSpeedX, this.playerSpeedY)
+        this.cameras.main.startFollow(this.earth.sprite);
     }
 
     update(): void {
-        this.rotationSpeedMoon += .003;
-        this.rotationSpeedEarth -= .001;
-
-        this.satellite.rotation += .003;
-
-        moveObjectAroundObject(this.moon, this.earth, this.rotationSpeedMoon, 10000);
-        moveObjectAroundObject(this.satellite, this.moon, this.rotationSpeedMoon, 60);
-
-        moveObjectAroundObject(this.earth, this.sun, this.rotationSpeedEarth, 150000);
-
         if (this.cursors.up.isDown) {
             this.cameras.main.setZoom(this.cameras.main.zoom * 1.01);
         }
@@ -84,13 +124,37 @@ export class initialScene extends Phaser.Scene {
             this.cameras.main.setZoom(this.cameras.main.zoom * 0.99);
         }
 
+        if (this.cursors.right.isDown ) {
+            if (!this.jumping && !this.descending) {
+                this.player.setFlipX(false);
+                this.player.anims.play('walk', true);
+            }
+            this.playerSpeedX += .01;
+            this.player.rotation += .01;
+        }
+
+        if (this.cursors.left.isDown) {
+            if (!this.jumping && !this.descending) {
+                this.player.setFlipX(true);
+                this.player.anims.play('walk', true);
+            }
+            this.playerSpeedX -= .01;
+            this.player.rotation -= .01;
+        }
+
+
+        if (this.cursors.right.isUp && this.cursors.left.isUp && !this.jumping && !this.descending) {
+            this.player.anims.stop();
+        }
+
         if (this.cursors.space.isDown && !this.jumping && !this.descending) {
+            this.player.anims.play('jump', true);
             this.jumping = true;
         }
 
         if (this.jumping) {
-            if (this.playerSpeedY <= 40) {
-                this.playerSpeedY += .5;
+            if (this.playerSpeedY <= 60) {
+                this.playerSpeedY += 1;
             } else {
                 this.jumping = false;
                 this.descending = true;
@@ -100,27 +164,21 @@ export class initialScene extends Phaser.Scene {
         if (this.descending) {
             if (this.playerSpeedY <= 0) {
                 this.playerSpeedY = 0;
+                this.player.anims.stop();
                 this.descending = false;
             } else {
-                this.playerSpeedY -= .5;
+                this.playerSpeedY -= 1.5;
             }
         }
 
         if (this.playerSpeedY < 0) this.playerSpeedY = 0;
 
-        if (this.cursors.right.isDown) {
-            this.playerSpeedX += .002;
-            this.player.rotation += .002;
-            this.cameras.main.rotation -= 0.002;
-        }
-
-        if (this.cursors.left.isDown) {
-            this.playerSpeedX -= .002;
-            this.player.rotation -= .002;
-            this.cameras.main.rotation += 0.002;
-        }
-
-        moveObjectAroundObject(this.player, this.moon, this.playerSpeedX, this.playerSpeedY);
+        this.earth.speed -= .005;
+        this.moon.speed += .003;
+        
+        moveObjectAroundObject(this.earth.sprite, this.sun.sprite, this.earth.speed, 10000);
+        moveObjectAroundObject(this.moon.sprite, this.earth.sprite, this.moon.speed, 1000);
+        moveObjectAroundObject(this.player, this.earth.sprite, this.playerSpeedX, this.playerSpeedY);
     }
 
 }
