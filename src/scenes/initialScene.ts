@@ -132,7 +132,7 @@ export class initialScene extends Phaser.Scene {
         this.down.setY(this.down.height)
 
 
-        this.containerb = this.add.container(0, 0, [this.left, this.right, this.up]);
+        this.containerb = this.add.container(0, 0, [this.left, this.right, this.up, this.down, this.buttonA]);
 
         this.cameras.main.ignore(this.containerb);
 
