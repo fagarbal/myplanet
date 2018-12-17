@@ -1,6 +1,6 @@
 abstract class PlanetOptions {
     radius: number;
-    color?: number;
+    colors?: number[];
     x?: number;
     y?: number;
     gravity?: number;
@@ -16,18 +16,34 @@ export class Planet {
         scene: Phaser.Scene,
         id: string,
         options: PlanetOptions) {
-        const circle = new Phaser.Geom.Circle(options.radius, options.radius, options.radius);
 
-        this.lon = circle.diameter * Math.PI;
         this.gravity = options.gravity || 9.8;
-
         const graphics = scene.make.graphics({ x: options.x, y: options.y, add: false });
-        graphics.fillStyle(options.color);
+
+        const circle = new Phaser.Geom.Circle(options.radius, options.radius, options.radius);
+        
+        this.lon = circle.diameter * Math.PI;
+
+        graphics.fillStyle(options.colors[0]);
         graphics.fillCircleShape(circle);
-        graphics.generateTexture(id, options.radius * 2, options.radius * 2);
+
+        options.colors.shift();
+
+        const diff = [4, 16, 26, 36];
+
+        options.colors.forEach((color, i) => {
+            const circle = new Phaser.Geom.Circle(options.radius, options.radius, options.radius - diff[i]);
+
+            graphics.fillCircleShape(circle);
+            graphics.fillStyle(color);
+        });
+    
+        graphics.generateTexture(id, circle.diameter , circle.diameter);
+
 
         this.sprite = scene.add.sprite(options.x, options.y, id);
     }
+
 
     showCircle() {
 

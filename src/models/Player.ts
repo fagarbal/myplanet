@@ -15,6 +15,10 @@ export class Player {
     currentSpeed = 0;
     currentGravity = 0;
 
+    moveRight = false;
+    moveLeft = false;
+    jump = false;
+
     constructor(scene: Phaser.Scene) {
         var config = {
             key: 'walk',
@@ -42,20 +46,21 @@ export class Player {
     update(cursors: CursorKeys) {
         switch(this.state) {
             case 'walking': 
-                if (cursors.right.isDown) {
+                if (cursors.right.isDown || this.moveRight) {
                     this.sprite.setFlipX(false);
                     this.sprite.anims.play('walk', true);
                 }
-                if (cursors.left.isDown) {
+                if (cursors.left.isDown || this.moveLeft) {
                     this.sprite.setFlipX(true);
                     this.sprite.anims.play('walk', true);
                 }
 
-                if (cursors.right.isUp && cursors.left.isUp) {
+                if ((cursors.right.isUp && cursors.left.isUp) &&
+                (!this.moveLeft && !this.moveRight)) {
                     this.sprite.anims.stop();
                 }
 
-                if (cursors.space.isDown) {
+                if (cursors.space.isDown || this.jump) {
                     this.sprite.anims.play('jump', true);
                     this.state = 'jumping';
                 }
@@ -75,15 +80,16 @@ export class Player {
                     this.speed.y = 0;
                     this.sprite.anims.stop();
                     this.state = 'walking';
+                    this.jump = false;
                 }
             }
         }
 
-        if (cursors.right.isDown) {
+        if (cursors.right.isDown || this.moveRight) {
             this.move();
         }
 
-        if (cursors.left.isDown) {
+        if (cursors.left.isDown || this.moveLeft) {
             this.move(true);
         }
     }

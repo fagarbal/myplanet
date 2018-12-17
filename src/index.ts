@@ -9,11 +9,13 @@ const config: GameConfig = {
     width: window.innerWidth,
     height: window.innerHeight,            
     scene: [initialScene],
+    resolution: devicePixelRatio,
+    pixelArt: true,
     input: {
         keyboard: true,
-        mouse: false,
-        touch: false,
-        gamepad: false
+        mouse: true,
+        touch: true,
+        gamepad: true
     }
 };
 
