@@ -1,7 +1,8 @@
 
 import { Planet } from '../models/Planet';
 import { Player } from '../models/Player';
-import { Tilemaps } from 'phaser';
+import { ControlCamera } from '../models/ControlCamera';
+import { Tilemaps, Cameras } from 'phaser';
 
 function moveObjectAroundObject(
     objectA: Phaser.GameObjects.Sprite,
@@ -19,14 +20,9 @@ export class initialScene extends Phaser.Scene {
     earth: Planet;
     moon: Planet;
 
-    left: Phaser.GameObjects.Sprite;
-    right: Phaser.GameObjects.Sprite;
-    up: Phaser.GameObjects.Sprite;
-    down: Phaser.GameObjects.Sprite;
-    buttonA: Phaser.GameObjects.Sprite;
+    controlCamera: ControlCamera;
 
     container: Phaser.GameObjects.Container;
-    containerb: Phaser.GameObjects.Container;
 
     player: Player;
 
@@ -34,13 +30,19 @@ export class initialScene extends Phaser.Scene {
 
     ship: Phaser.GameObjects.Sprite;
 
-    isUp = false;
-    isDown = false;
-
     constructor() {
         super({
             key: 'initialScene'
         });
+    }
+
+    init() {
+        var el = document.getElementsByTagName('canvas')[0] as any;
+        var requestFullScreen = el.requestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen || el.webkitRequestFullscreen;
+
+        if (requestFullScreen) {
+            requestFullScreen.call(el);
+        }
     }
 
     preload(): void {
@@ -92,108 +94,31 @@ export class initialScene extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.cameras.main.setZoom(1);
 
-        const camera = this.cameras.add(0, 0, innerWidth, innerHeight);
-
+        this.controlCamera = new ControlCamera(this);
 
         this.container = this.add.container(0, 0, [this.ship, this.player.sprite, this.earth.sprite, this.moon.sprite, this.sun.sprite]);
 
-        camera.ignore(this.container);
-
+        this.controlCamera.camera.ignore(this.container);
 
         this.cameras.main.setAngle(270);
         this.cameras.main.startFollow(this.player.sprite);
 
-
-        this.left = this.add.sprite(0,0,'left');
-
-        this.left.setX(this.left.width);
-        this.left.setY(innerHeight - this.left.height)
-
-        this.right = this.add.sprite(0,0,'right');
-
-        this.right.setX(this.right.width + this.left.x + (this.left.width/2));
-        this.right.setY(innerHeight - this.right.height)
-
-
-        this.buttonA = this.add.sprite(0,0,'buttona');
-
-        this.buttonA.setX(innerWidth - this.buttonA.width);
-        this.buttonA.setY(innerHeight - this.buttonA.height)
-
-
-        this.up = this.add.sprite(0,0,'up');
-
-        this.up.setX(innerWidth - this.up.width* 2.5);
-        this.up.setY(this.up.height)
-
-        this.down = this.add.sprite(0,0,'down');
-
-        this.down.setX(innerWidth - this.down.width);
-        this.down.setY(this.down.height)
-
-
-        this.containerb = this.add.container(0, 0, [this.left, this.right, this.up, this.down, this.buttonA]);
-
-        this.cameras.main.ignore(this.containerb);
-
-        this.left.setInteractive();
-        this.right.setInteractive();
-        this.up.setInteractive();
-        this.down.setInteractive();
-        this.buttonA.setInteractive();
-
-        this.left.on('pointerdown', () => {
-            this.player.moveLeft = true;
-            this.player.moveRight = false;
-        })
-
-        this.right.on('pointerdown', () => {
-            this.player.moveLeft = false;
-            this.player.moveRight = true;
-        })
-
-        this.left.on('pointerup', () => {
-            this.player.moveLeft = false;
-        })
-
-        this.right.on('pointerup', () => {
-            this.player.moveRight = false;
-        })
-
-        this.up.on('pointerdown', () => {
-            this.isUp = true;
-        })
-
-        this.up.on('pointerup', () => {
-            this.isUp = false;
-        })
-
-        this.down.on('pointerdown', () => {
-            this.isDown = true;
-        })
-
-        this.down.on('pointerup', () => {
-            this.isDown = false;
-        })
-
-        this.buttonA.on('pointerdown', () => {
-            this.player.jump = true;
-        })
+        this.cameras.main.ignore(this.controlCamera.container);
     }
 
     update(): void {
-        if (this.cursors.up.isDown || this.isUp) {
+        if (this.cursors.up.isDown || this.controlCamera.controls.upDown) {
             this.cameras.main.setZoom(this.cameras.main.zoom * 1.01);
         }
 
-        if (this.cursors.down.isDown || this.isDown) {
+        if (this.cursors.down.isDown || this.controlCamera.controls.downDown) {
             this.cameras.main.setZoom(this.cameras.main.zoom * 0.99);
         }
 
         this.earth.speed -= .005;
         this.moon.speed += .003;
         
-        this.player.update(this.cursors);
+        this.player.update(this.cursors, this.controlCamera.controls);
 
         
         moveObjectAroundObject(this.earth.sprite, this.sun.sprite, this.earth.speed, 2000);
