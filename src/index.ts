@@ -10,6 +10,7 @@ const config: GameConfig = {
     height: window.innerHeight,            
     scene: [initialScene],
     resolution: devicePixelRatio,
+    canvas: document.getElementById('canvas') as HTMLCanvasElement,
     pixelArt: true,
     input: {
         keyboard: true,

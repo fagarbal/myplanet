@@ -15,6 +15,7 @@ export class ControlCamera {
     up: Phaser.GameObjects.Sprite;
     down: Phaser.GameObjects.Sprite;
     buttonA: Phaser.GameObjects.Sprite;
+    full: Phaser.GameObjects.Sprite;
 
     container: Phaser.GameObjects.Container;
 
@@ -29,6 +30,10 @@ export class ControlCamera {
     constructor(scene: Phaser.Scene) {
         this.camera = scene.cameras.add(0, 0, innerWidth, innerHeight);
 
+        this.full = scene.add.sprite(0, 0, 'up');
+
+        this.full.setX(this.full.width);
+        this.full.setY(this.full.height)
 
         this.left = scene.add.sprite(0, 0, 'left');
 
@@ -58,13 +63,14 @@ export class ControlCamera {
         this.down.setY(this.down.height)
 
 
-        this.container = scene.add.container(0, 0, [this.left, this.right, this.up, this.down, this.buttonA]);
+        this.container = scene.add.container(0, 0, [this.left, this.right, this.up, this.down, this.buttonA, this.full]);
 
         this.left.setInteractive();
         this.right.setInteractive();
         this.up.setInteractive();
         this.down.setInteractive();
         this.buttonA.setInteractive();
+        this.full.setInteractive();
 
         this.left.on('pointerdown', () => {
             this.controls.leftDown = true;
@@ -74,36 +80,27 @@ export class ControlCamera {
             this.controls.rigthDown = true;
         })
 
-        this.left.on('pointerout', () => {
-            this.controls.leftDown = false;
-        })
-
-        this.right.on('pointerout', () => {
-            this.controls.rigthDown = false;
-        })
-
         this.up.on('pointerdown', () => {
             this.controls.upDown = true;
         })
 
-        this.up.on('pointerout', () => {
-            this.controls.upDown = false;
-        })
 
         this.down.on('pointerdown', () => {
             this.controls.downDown = true;
-        })
-
-        this.down.on('pointerout', () => {
-            this.controls.downDown = false;
         })
 
         this.buttonA.on('pointerdown', () => {
             this.controls.aDown = true;
         })
 
-        this.buttonA.on('pointerout', () => {
-            this.controls.aDown = false;
-        })
+        scene.input.on('pointerup', () => {
+            this.controls = {
+                leftDown: false,
+                rigthDown: false,
+                upDown: false,
+                downDown: false,
+                aDown: false
+            };
+        });
     }
 }

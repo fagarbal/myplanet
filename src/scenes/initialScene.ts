@@ -36,15 +36,6 @@ export class initialScene extends Phaser.Scene {
         });
     }
 
-    init() {
-        var el = document.getElementsByTagName('canvas')[0] as any;
-        var requestFullScreen = el.requestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen || el.webkitRequestFullscreen;
-
-        if (requestFullScreen) {
-            requestFullScreen.call(el);
-        }
-    }
-
     preload(): void {
         this.load.spritesheet('player', './src/assets/player.png', { frameWidth: 70, frameHeight: 70 });
         this.load.image('ship', './src/assets/ship.png');

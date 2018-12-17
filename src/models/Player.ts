@@ -53,7 +53,7 @@ export class Player {
                 }
 
                 if ((cursors.right.isUp && cursors.left.isUp) &&
-                (!cameraCursors.leftDown && cameraCursors.rigthDown)) {
+                (!cameraCursors.leftDown && !cameraCursors.rigthDown)) {
                     this.sprite.anims.stop();
                 }
 
